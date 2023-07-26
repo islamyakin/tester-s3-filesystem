@@ -12,6 +12,12 @@ import (
 )
 
 func main() {
+	if len(os.Args) < 4 {
+		fmt.Println("usage:go run main.go <name file in local> <name file in s3>")
+	}
+	nameFileLocal := os.Args[1]
+	nameFileS3 := os.Args[2]
+
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("Error loading env file", err)
@@ -24,6 +30,15 @@ func main() {
 	bucket := os.Getenv("AWS_BUCKET")
 	region := os.Getenv("AWS_REGION")
 
+	err = uploadFileToS3(accessKeyID, secretAccessKey, endpoint, bucket, region, nameFileLocal, nameFileS3)
+	if err != nil {
+		fmt.Println("Failed upload to s3,", err)
+		return
+	}
+}
+
+func uploadFileToS3(accessKeyID, secretAccessKey, endpoint, bucket, region, nameFileLocal, nameFileS3 string) error {
+
 	// Konfigurasi sesi AWS
 	sess, err := session.NewSession(&aws.Config{
 		Region:           aws.String(region),
@@ -32,31 +47,22 @@ func main() {
 		Credentials:      credentials.NewStaticCredentials(accessKeyID, secretAccessKey, ""),
 	})
 	if err != nil {
-		fmt.Println("Failed to create session:", err)
-		return
+		return err
 	}
 
 	// mulai sesi s3
 	svc := s3.New(sess)
 
-	// nama file di lokal
-	localFilePath := "testing1.txt"
-
-	// nama untuk di s3
-	s3ObjectKey := "testing1.txt"
-
-	// cek file di lokal
-	file, err := os.Open(localFilePath)
+	file, err := os.Open(nameFileLocal)
 	if err != nil {
-		fmt.Println("Failed to open file:", err)
-		return
+		return err
 	}
 	defer file.Close()
 
 	// Konfig upload
 	uploadInput := &s3.PutObjectInput{
 		Bucket: aws.String(bucket),
-		Key:    aws.String(s3ObjectKey),
+		Key:    aws.String(nameFileS3),
 		Body:   file,
 		ACL:    aws.String("public-read"),
 	}
@@ -64,9 +70,10 @@ func main() {
 	// Upload
 	_, err = svc.PutObject(uploadInput)
 	if err != nil {
-		fmt.Println("Failed to upload file:", err)
-		return
+		return err
 	}
-	url := fmt.Sprintf("%s/%s/%s", endpoint, bucket, s3ObjectKey)
+	url := fmt.Sprintf("%s/%s/%s", endpoint, bucket, nameFileS3)
 	fmt.Println("URL Public object: ", url)
+
+	return nil
 }
