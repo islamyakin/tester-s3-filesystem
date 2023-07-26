@@ -22,10 +22,11 @@ func main() {
 	secretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 	endpoint := os.Getenv("AWS_ENDPOINT")
 	bucket := os.Getenv("AWS_BUCKET")
+	region := os.Getenv("AWS_REGION")
 
 	// Konfigurasi sesi AWS
 	sess, err := session.NewSession(&aws.Config{
-		Region:           aws.String("ap-south-1"),
+		Region:           aws.String(region),
 		Endpoint:         aws.String(endpoint),
 		S3ForcePathStyle: aws.Bool(false),
 		Credentials:      credentials.NewStaticCredentials(accessKeyID, secretAccessKey, ""),
@@ -66,6 +67,6 @@ func main() {
 		fmt.Println("Failed to upload file:", err)
 		return
 	}
-
-	fmt.Println("File berhasil diunggah ke S3!")
+	url := fmt.Sprintf("%s/%s/%s", endpoint, bucket, s3ObjectKey)
+	fmt.Println("URL Public object: ", url)
 }
