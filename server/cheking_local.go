@@ -9,6 +9,7 @@ import (
 )
 
 func HandleS3Cek(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	database := db.GetDB()
 
 	var files []models.File

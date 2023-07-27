@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Viewer</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <h1>File Viewer</h1>
+    <button id="s3Button">Tampilkan File dari S3</button>
+    <button id="databaseButton">Tampilkan File dari Database</button>
+
+    <div id="fileList">
+        <!-- Tempat untuk menampilkan tabel -->
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Ketika tombol "Tampilkan File dari S3" diklik
+            $("#s3Button").click(function() {
+                // Hapus konten yang ada di dalam elemen dengan id "fileList"
+                $("#fileList").empty();
+
+                // Lakukan permintaan ke endpoint untuk menampilkan file dari S3
+                $.ajax({
+                    url: "http://localhost:8080/s3/cek/s3",
+                    type: "GET",
+                    dataType: "json",
+                    success: function(response) {
+                        // Buat tabel untuk menampilkan daftar file dari S3
+                        var table = $("<table></table>");
+                        var headerRow = $("<tr></tr>").append(
+                            $("<th></th>").text("Nama File"),
+                            $("<th></th>").text("Link File"),
+                            $("<th></th>").text("Bucket Name")
+                        );
+                        table.append(headerRow);
+
+                        // Tambahkan baris untuk setiap file dari S3
+                        response.forEach(function(file) {
+                            var fileLink = $("<a></a>").attr("href", file.s3_url).text(file.name);
+                            var row = $("<tr></tr>").append(
+                                $("<td></td>").append(fileLink),
+                                $("<td></td>").text(file.s3_url),
+                                $("<td></td>").text(file.bucket)
+                            );
+                            table.append(row);
+                        });
+
+                        // Tampilkan tabel di dalam elemen dengan id "fileList"
+                        $("#fileList").append(table);
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error: " + error);
+                    }
+                });
+            });
+
+            // Ketika tombol "Tampilkan File dari Database" diklik
+            $("#databaseButton").click(function() {
+                // Hapus konten yang ada di dalam elemen dengan id "fileList"
+                $("#fileList").empty();
+                                // Autentikasi username dan password
+                var username = "admin";
+                var password = "admin123";
+                var authString = btoa(username + ":" + password);
+                var authHeader = "Basic " + authString;
+
+                // Lakukan permintaan ke endpoint untuk menampilkan file dari database
+                $.ajax({
+                    url: "http://localhost:8080/s3/cek/local", // Ganti dengan URL endpoint untuk file dari database
+                    type: "GET",
+                    dataType: "json",
+                    headers: {
+                        "Authorization": authHeader
+                    },
+                    success: function(response) {
+                        // Buat tabel untuk menampilkan daftar file dari database
+                        var table = $("<table></table>");
+                        var headerRow = $("<tr></tr>").append(
+                            $("<th></th>").text("Nama File"),
+                            $("<th></th>").text("Link File"),
+                            $("<th></th>").text("Bucket Name")
+                        );
+                        table.append(headerRow);
+
+                        // Tambahkan baris untuk setiap file dari database
+                        response.forEach(function(file) {
+                            var fileLink = $("<a></a>").attr("href", file.S3URL).text(file.FileName);
+                            var row = $("<tr></tr>").append(
+                                $("<td></td>").append(fileLink),
+                                $("<td></td>").text(file.S3URL),
+                                $("<td></td>").text(file.Bucket)
+                            );
+                            table.append(row);
+                        });
+
+                        // Tampilkan tabel di dalam elemen dengan id "fileList"
+                        $("#fileList").append(table);
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error: " + error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -10,7 +10,16 @@ import (
 
 // middleware.go
 func BasicAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+
+		// Handle preflight requests (OPTIONS)
+		if r.Method == http.MethodOptions {
+			return
+		}
 		// Check if the request contains the Authorization header
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {

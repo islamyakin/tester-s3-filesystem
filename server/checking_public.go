@@ -16,9 +16,11 @@ type FileData struct {
 	Name     string `json:"name"`
 	FileType string `json:"file_type"`
 	S3URL    string `json:"s3_url"`
+	Bucket   string `json:"bucket"`
 }
 
 func HandleListFilesS3(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	err := godotenv.Load()
 	if err != nil {
 		http.Error(w, "Error loading .env file", http.StatusInternalServerError)
@@ -62,6 +64,7 @@ func HandleListFilesS3(w http.ResponseWriter, _ *http.Request) {
 			Name:     *item.Key,
 			FileType: "", // You can set the file type based on your logic
 			S3URL:    endpoint + "/" + bucket + "/" + *item.Key,
+			Bucket:   bucket,
 		}
 		files = append(files, file)
 	}
