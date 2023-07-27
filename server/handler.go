@@ -45,7 +45,7 @@ func HandleS3Upload(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	// Konfigurasi sesi AWS
+	// Configure session AWS
 	sess, err := session.NewSession(&aws.Config{
 		Region:           aws.String(region),
 		Endpoint:         aws.String(endpoint),
@@ -57,10 +57,10 @@ func HandleS3Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Inisialisasi layanan S3
+	// Initialize service S3
 	svc := s3.New(sess)
 
-	// Konfigurasi upload
+	// Configure upload
 	uploadInput := &s3.PutObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(handler.Filename),
@@ -68,7 +68,7 @@ func HandleS3Upload(w http.ResponseWriter, r *http.Request) {
 		ACL:    aws.String("public-read"),
 	}
 
-	// Melakukan upload file
+	// Upload file to S3
 	_, err = svc.PutObject(uploadInput)
 	if err != nil {
 		http.Error(w, "Failed to upload file", http.StatusInternalServerError)
@@ -101,7 +101,7 @@ func HandleS3Delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	fileName := vars["filename"]
 
-	// Konfigurasi sesi AWS
+	// Configure session AWS
 	sess, err := session.NewSession(&aws.Config{
 		Region:           aws.String(region),
 		Endpoint:         aws.String(endpoint),
@@ -113,16 +113,16 @@ func HandleS3Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Inisialisasi layanan S3
+	// Initialize service S3
 	svc := s3.New(sess)
 
-	// Konfigurasi delete
+	// Configure delete
 	deleteInput := &s3.DeleteObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(fileName),
 	}
 
-	// Melakukan delete objek
+	// Delete object
 	_, err = svc.DeleteObject(deleteInput)
 	if err != nil {
 		http.Error(w, "Failed to delete file", http.StatusInternalServerError)

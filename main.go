@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	. "github.com/islamyakin/tester-s3-filesystem/server"
 	"net/http"
 )
 
