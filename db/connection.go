@@ -42,7 +42,8 @@ func InitDB() (*gorm.DB, error) {
 func GetDB() *gorm.DB {
 	database, err := InitDB()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return nil
 	}
 	return database
 
