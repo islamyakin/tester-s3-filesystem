@@ -1,0 +1,6 @@
+CREATE TABLE files (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    file_name VARCHAR(255) NOT NULL,
+    file_type VARCHAR(100) NOT NULL,
+    s3_url VARCHAR(255) NOT NULL
+);
