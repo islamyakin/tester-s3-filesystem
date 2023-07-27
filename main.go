@@ -17,6 +17,10 @@ func intiliazeDatabase() (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to initialize database: %v", err)
 	}
 
+	if err := db.RunMigrations(); err != nil {
+		return nil, fmt.Errorf("failed to run database migrations: %v", err)
+	}
+
 	return database, nil
 }
 

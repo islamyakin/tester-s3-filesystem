@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/gorilla/mux"
 	"github.com/islamyakin/tester-s3-filesystem/db"
 	"log"
@@ -108,6 +109,7 @@ func HandleS3Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	database := db.GetDB()
 	vars := mux.Vars(r)
 	fileName := vars["filename"]
 
@@ -126,6 +128,20 @@ func HandleS3Delete(w http.ResponseWriter, r *http.Request) {
 	// Initialize service S3
 	svc := s3.New(sess)
 
+	headInput := &s3.HeadObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(fileName),
+	}
+
+	_, err = svc.HeadObject(headInput)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "NotFound" {
+			http.Error(w, "File not found in S3", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Failed to get file in S3", http.StatusInternalServerError)
+	}
+
 	// Configure delete
 	deleteInput := &s3.DeleteObjectInput{
 		Bucket: aws.String(bucket),
@@ -135,11 +151,9 @@ func HandleS3Delete(w http.ResponseWriter, r *http.Request) {
 	// Delete object
 	_, err = svc.DeleteObject(deleteInput)
 	if err != nil {
-		http.Error(w, "Failed to delete file", http.StatusInternalServerError)
+		http.Error(w, "Failed to delete file from s3", http.StatusInternalServerError)
 		return
 	}
-
-	database := db.GetDB()
 
 	deleteQuery := "DELETE FROM files WHERE file_name = ?"
 	if err := database.Exec(deleteQuery, fileName).Error; err != nil {

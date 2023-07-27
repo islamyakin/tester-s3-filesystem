@@ -4,7 +4,7 @@ import (
 	"github.com/islamyakin/tester-s3-filesystem/models"
 )
 
-func Migrate() error {
+func RunMigrations() error {
 	// Get the GORM database instance
 	database, err := InitDB()
 	if err != nil {
