@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/gorilla/mux"
 	"github.com/islamyakin/tester-s3-filesystem/db"
+	"github.com/islamyakin/tester-s3-filesystem/models"
 	"log"
 	"net/http"
 	"os"
@@ -82,10 +83,17 @@ func HandleS3Upload(w http.ResponseWriter, r *http.Request) {
 
 	database := db.GetDB()
 
+	var count int64
+	database.Model(&models.File{}).Where("file_name = ?", handler.Filename).Count(&count)
+	if count > 0 {
+		http.Error(w, "File sudah ada di database", http.StatusBadRequest)
+		return
+	}
+
 	insertQuery := "INSERT INTO files (file_name, file_type, s3_url) VALUES (?, ?, ?)"
 	if err := database.Exec(insertQuery, handler.Filename, handler.Header.Get("Content-Type"), url).Error; err != nil {
 		http.Error(w, "Failed to insert data to database", http.StatusInternalServerError)
-		log.Println(err)
+		log.Println("Failed to insert data to database:", err)
 		return
 	}
 	fmt.Fprintf(w, "File berhasil diupload ke S3")
