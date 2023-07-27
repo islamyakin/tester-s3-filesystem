@@ -18,7 +18,7 @@ func InitDB() (*gorm.DB, error) {
 
 	failedload := godotenv.Load()
 	if failedload != nil {
-		log.Fatal("Error loading .env file", failedload)
+		return nil, fmt.Errorf("failed to load .env file: %w", failedload)
 	}
 
 	dbUser := os.Getenv("MYSQL_USER")
@@ -30,7 +30,7 @@ func InitDB() (*gorm.DB, error) {
 	dataSourceName := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
 
 	var err error
-	database, err := gorm.Open(mysql.Open(dataSourceName), &gorm.Config{})
+	database, err := gorm.Open(mysql.Open(dataSourceName), &gorm.Config{SkipDefaultTransaction: true})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %v", err)
 	}
