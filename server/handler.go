@@ -2,6 +2,9 @@ package server
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
+	"github.com/islamyakin/tester-s3-filesystem/db"
+	"log"
 	"net/http"
 	"os"
 
@@ -9,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 )
 
@@ -76,9 +78,17 @@ func HandleS3Upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	url := fmt.Sprintf("%s/%s/%s", endpoint, bucket, handler.Filename)
-	fmt.Fprintf(w, "File berhasil diunggah ke S3. URL: %s", url)
-}
 
+	database := db.GetDB()
+
+	insertQuery := "INSERT INTO files (file_name, file_type, s3_url) VALUES (?, ?, ?)"
+	if err := database.Exec(insertQuery, handler.Filename, handler.Header.Get("Content-Type"), url).Error; err != nil {
+		http.Error(w, "Failed to insert data to database", http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
+	fmt.Fprintf(w, "File berhasil diupload ke S3")
+}
 func HandleS3Delete(w http.ResponseWriter, r *http.Request) {
 	err := godotenv.Load()
 	if err != nil {
@@ -129,5 +139,14 @@ func HandleS3Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "File berhasil dihapus dari S3: %s", fileName)
+	database := db.GetDB()
+
+	deleteQuery := "DELETE FROM files WHERE file_name = ?"
+	if err := database.Exec(deleteQuery, fileName).Error; err != nil {
+		http.Error(w, "Failed to delete data from database", http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
+
+	fmt.Fprintf(w, "File berhasil dihapus dari S3 dan Database")
 }
