@@ -18,7 +18,7 @@ type FileData struct {
 	S3URL    string `json:"s3_url"`
 }
 
-func HandleListFilesS3(w http.ResponseWriter, r *http.Request) {
+func HandleListFilesS3(w http.ResponseWriter, _ *http.Request) {
 	err := godotenv.Load()
 	if err != nil {
 		http.Error(w, "Error loading .env file", http.StatusInternalServerError)
