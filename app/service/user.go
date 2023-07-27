@@ -14,9 +14,6 @@ var DbUserAuth *gorm.DB
 
 func InitDBAuth() (*gorm.DB, error) {
 	failed := godotenv.Load()
-	if failed != nil {
-
-	}
 
 	dbUser := os.Getenv("AUTH_MYSQL_USER")
 	dbPass := os.Getenv("AUTH_MYSQL_PASSWORD")
