@@ -3,6 +3,10 @@ package server
 import (
 	"errors"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -13,9 +17,6 @@ import (
 	"github.com/islamyakin/tester-s3-filesystem/models"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
-	"log"
-	"net/http"
-	"os"
 )
 
 func HandleS3Delete(w http.ResponseWriter, r *http.Request) {
@@ -114,10 +115,7 @@ func HandleS3Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = removeFileFromS3IfNotInDatabase(fileName)
-	if err != nil {
-		//		http.Error(w, "Failed to delete file from S3", http.StatusInternalServerError)
-		//		return
-	}
+
 	fmt.Fprintf(w, "File berhasil dihapus dari S3 dan Database")
 }
 func removeFileFromS3IfNotInDatabase(fileName string) error {

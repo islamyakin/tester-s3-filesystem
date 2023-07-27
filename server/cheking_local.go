@@ -2,12 +2,13 @@ package server
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/islamyakin/tester-s3-filesystem/db"
 	"github.com/islamyakin/tester-s3-filesystem/models"
-	"net/http"
 )
 
-func HandleS3Cek(w http.ResponseWriter, r *http.Request) {
+func HandleS3Cek(w http.ResponseWriter, _ *http.Request) {
 	database := db.GetDB()
 
 	var files []models.File
