@@ -1,11 +1,13 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/gorilla/mux"
 	"github.com/islamyakin/tester-s3-filesystem/db"
 	"github.com/islamyakin/tester-s3-filesystem/models"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
@@ -90,13 +92,13 @@ func HandleS3Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	insertQuery := "INSERT INTO files (file_name, file_type, s3_url) VALUES (?, ?, ?)"
-	if err := database.Exec(insertQuery, handler.Filename, handler.Header.Get("Content-Type"), url).Error; err != nil {
+	insertQuery := "INSERT INTO files (file_name, file_type, s3_url, bucket) VALUES (?, ?, ?, ?)"
+	if err := database.Exec(insertQuery, handler.Filename, handler.Header.Get("Content-Type"), url, bucket).Error; err != nil {
 		http.Error(w, "Failed to insert data to database", http.StatusInternalServerError)
 		log.Println("Failed to insert data to database:", err)
 		return
 	}
-	fmt.Fprintf(w, "File berhasil diupload ke S3")
+	fmt.Fprintf(w, "File berhasil diupload ke S3: %s", url)
 }
 func HandleS3Delete(w http.ResponseWriter, r *http.Request) {
 	err := godotenv.Load()
@@ -120,6 +122,17 @@ func HandleS3Delete(w http.ResponseWriter, r *http.Request) {
 	database := db.GetDB()
 	vars := mux.Vars(r)
 	fileName := vars["filename"]
+
+	var file models.File
+	if err := database.Where("file_name = ?", fileName).First(&file).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "File not found in database", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Failed to get file from database", http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
 
 	// Configure session AWS
 	sess, err := session.NewSession(&aws.Config{
