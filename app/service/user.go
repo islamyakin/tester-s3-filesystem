@@ -11,7 +11,7 @@ import (
 
 var DbUserAuth *gorm.DB
 
-func main() {
+func InitDBAuth() (*gorm.DB, error) {
 	failed := godotenv.Load()
 	if failed != nil {
 		fmt.Errorf("failed to load .env file: %w", failed)
@@ -31,11 +31,8 @@ func main() {
 		panic(err)
 	}
 
-	err_migrate := DbUserAuth.AutoMigrate(&models.User{})
-	if err != nil {
-		panic(err_migrate)
-	}
 	createAdminIfNotExists()
+	return DbUserAuth, nil
 }
 
 func createAdminIfNotExists() {
@@ -53,6 +50,19 @@ func createAdminIfNotExists() {
 		Role:     "admin",
 	}
 	DbUserAuth.Create(&admin)
+}
+
+func RunMigrationsUser() error {
+	// Jalankan migrasi untuk tabel pengguna (user) di sini
+	// Contoh implementasi:
+	err := DbUserAuth.AutoMigrate(&models.User{})
+	if err != nil {
+		return fmt.Errorf("failed to run migrations: %v", err)
+	}
+
+	// Tambahkan migrasi untuk tabel-tabel lain yang diperlukan di sini
+
+	return nil
 }
 func HashPassword(password string) string {
 	// Implementasikan fungsi hashing password sesuai kebutuhan aplikasi Anda
