@@ -2,11 +2,12 @@ package service
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/islamyakin/tester-s3-filesystem/models"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"os"
 )
 
 var DbUserAuth *gorm.DB
@@ -14,7 +15,7 @@ var DbUserAuth *gorm.DB
 func InitDBAuth() (*gorm.DB, error) {
 	failed := godotenv.Load()
 	if failed != nil {
-		fmt.Errorf("failed to load .env file: %w", failed)
+
 	}
 
 	dbUser := os.Getenv("AUTH_MYSQL_USER")
