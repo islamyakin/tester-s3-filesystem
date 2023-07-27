@@ -12,10 +12,13 @@ import (
 var database *gorm.DB
 
 func InitDB() (*gorm.DB, error) {
+	if database != nil {
+		return database, nil
+	}
 
-	gagal := godotenv.Load()
-	if gagal != nil {
-		log.Fatal("Error loading .env file", gagal)
+	failedload := godotenv.Load()
+	if failedload != nil {
+		log.Fatal("Error loading .env file", failedload)
 	}
 
 	dbUser := os.Getenv("MYSQL_USER")
@@ -29,14 +32,20 @@ func InitDB() (*gorm.DB, error) {
 	var err error
 	database, err := gorm.Open(mysql.Open(dataSourceName), &gorm.Config{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to database: %v", err)
 	}
 
 	return database, nil
+
 }
 
 func GetDB() *gorm.DB {
+	database, err := InitDB()
+	if err != nil {
+		log.Fatal(err)
+	}
 	return database
+
 }
 
 /*
